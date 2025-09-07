@@ -35,7 +35,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 
     // Regular user - find in database
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: String(decoded.userId) },
       select: {
         id: true,
         name: true,
