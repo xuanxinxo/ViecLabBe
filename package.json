@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "prisma generate && tsc",
+    "build": "node node_modules/prisma/build/index.js generate && tsc",
     "postinstall": "echo 'Postinstall completed'",
     "start": "node dist/index.js",
     "test": "echo \"No tests specified\" && exit 0",
