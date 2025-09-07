@@ -6,7 +6,7 @@ import {
   generateRefreshToken, 
   generateRandomToken, 
   getTokenExpiration 
-} from '../utils/tokens.js';
+} from '../utils/tokens';
 import { 
   registerSchema, 
   loginSchema, 
@@ -14,8 +14,8 @@ import {
   forgotPasswordSchema, 
   verifyEmailSchema,
   refreshTokenSchema 
-} from '../utils/validators.js';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js';
+} from '../utils/validators';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email';
 // Rate limiting is applied in the routes
 
 const prisma = new PrismaClient();

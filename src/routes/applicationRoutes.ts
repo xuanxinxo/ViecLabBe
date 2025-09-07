@@ -6,8 +6,8 @@ import {
   updateApplication,
   deleteApplication,
   getMyApplications,
-} from '../controllers/applicationController.js';
-import { auth } from '../middleware/auth.js';
+} from '../controllers/applicationController';
+import { auth } from '../middleware/auth';
 
 const router = Router();
 

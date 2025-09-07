@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateJob = exports.deleteJob = exports.createJob = exports.getJobById = exports.getJobs = void 0;
-const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
+const prisma_1 = __importDefault(require("../lib/prisma"));
 // Lấy tất cả jobs
 const getJobs = async (req, res) => {
     try {
@@ -18,7 +18,7 @@ const getJobs = async (req, res) => {
             where.location = { contains: location, mode: 'insensitive' };
         if (isRemote !== undefined)
             where.isRemote = isRemote === 'true';
-        const jobs = await prisma_js_1.default.job.findMany({
+        const jobs = await prisma_1.default.job.findMany({
             where,
             orderBy: {
                 postedDate: 'desc',
@@ -43,7 +43,7 @@ exports.getJobs = getJobs;
 const getJobById = async (req, res) => {
     try {
         const { id } = req.params;
-        const job = await prisma_js_1.default.job.findUnique({
+        const job = await prisma_1.default.job.findUnique({
             where: { id },
         });
         if (!job) {
@@ -76,7 +76,7 @@ const createJob = async (req, res) => {
                 error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc',
             });
         }
-        const createdJob = await prisma_js_1.default.job.create({
+        const createdJob = await prisma_1.default.job.create({
             data: {
                 title,
                 company,
@@ -111,7 +111,7 @@ exports.createJob = createJob;
 const deleteJob = async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma_js_1.default.job.delete({
+        await prisma_1.default.job.delete({
             where: { id },
         });
         return res.status(200).json({
@@ -135,7 +135,7 @@ const updateJob = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote, tags, status, } = req.body;
-        const updatedJob = await prisma_js_1.default.job.update({
+        const updatedJob = await prisma_1.default.job.update({
             where: { id },
             data: {
                 title,

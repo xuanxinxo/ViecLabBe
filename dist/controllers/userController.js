@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.updateUser = exports.logout = exports.refreshToken = exports.resetPassword = exports.forgotPassword = exports.verifyEmail = exports.getCurrentUser = exports.login = exports.register = void 0;
 const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const tokens_js_1 = require("../utils/tokens.js");
-const validators_js_1 = require("../utils/validators.js");
-const email_js_1 = require("../utils/email.js");
+const tokens_1 = require("../utils/tokens");
+const validators_1 = require("../utils/validators");
+const email_1 = require("../utils/email");
 // Rate limiting is applied in the routes
 const prisma = new client_1.PrismaClient();
 const MAX_LOGIN_ATTEMPTS = Number(process.env.MAX_LOGIN_ATTEMPTS ?? 5);
@@ -17,7 +17,7 @@ const LOCKOUT_MINUTES = Number(process.env.LOCKOUT_MINUTES ?? 15);
 const register = async (req, res) => {
     try {
         // Validate request body
-        const validation = validators_js_1.registerSchema.safeParse(req.body);
+        const validation = validators_1.registerSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
@@ -38,8 +38,8 @@ const register = async (req, res) => {
         }
         // Hash password
         const hashedPassword = await bcrypt_1.default.hash(password, 12);
-        const emailVerificationToken = (0, tokens_js_1.generateRandomToken)();
-        const emailVerificationExpires = (0, tokens_js_1.getTokenExpiration)(24 * 60); // 24 hours
+        const emailVerificationToken = (0, tokens_1.generateRandomToken)();
+        const emailVerificationExpires = (0, tokens_1.getTokenExpiration)(24 * 60); // 24 hours
         // Create user
         const user = await prisma.user.create({
             data: {
@@ -52,16 +52,16 @@ const register = async (req, res) => {
         });
         // Send verification email
         try {
-            await (0, email_js_1.sendVerificationEmail)(email, emailVerificationToken);
+            await (0, email_1.sendVerificationEmail)(email, emailVerificationToken);
         }
         catch (emailError) {
             console.error('Failed to send verification email:', emailError);
             // Continue even if email fails
         }
         // Generate tokens
-        const accessToken = (0, tokens_js_1.generateAccessToken)(user.id, user.email, user.role);
-        const refreshToken = (0, tokens_js_1.generateRefreshToken)(user.id);
-        const refreshTokenExpires = (0, tokens_js_1.getTokenExpiration)(7 * 24 * 60); // 7 days
+        const accessToken = (0, tokens_1.generateAccessToken)(user.id, user.email, user.role);
+        const refreshToken = (0, tokens_1.generateRefreshToken)(user.id);
+        const refreshTokenExpires = (0, tokens_1.getTokenExpiration)(7 * 24 * 60); // 7 days
         // Save refresh token to database
         await prisma.user.update({
             where: { id: user.id },
@@ -95,7 +95,7 @@ exports.register = register;
 const login = async (req, res) => {
     try {
         // Validate request body
-        const validation = validators_js_1.loginSchema.safeParse(req.body);
+        const validation = validators_1.loginSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
@@ -125,7 +125,7 @@ const login = async (req, res) => {
             if (user && process.env.DISABLE_LOGIN_LOCK !== 'true') {
                 const failedAttempts = user.failedLoginAttempts + 1;
                 const accountLockedUntil = failedAttempts >= MAX_LOGIN_ATTEMPTS
-                    ? (0, tokens_js_1.getTokenExpiration)(LOCKOUT_MINUTES)
+                    ? (0, tokens_1.getTokenExpiration)(LOCKOUT_MINUTES)
                     : null;
                 await prisma.user.update({
                     where: { id: user.id },
@@ -160,9 +160,9 @@ const login = async (req, res) => {
             });
         }
         // Generate tokens
-        const accessToken = (0, tokens_js_1.generateAccessToken)(user.id, user.email, user.role);
-        const refreshToken = (0, tokens_js_1.generateRefreshToken)(user.id);
-        const refreshTokenExpires = (0, tokens_js_1.getTokenExpiration)(7 * 24 * 60); // 7 days
+        const accessToken = (0, tokens_1.generateAccessToken)(user.id, user.email, user.role);
+        const refreshToken = (0, tokens_1.generateRefreshToken)(user.id);
+        const refreshTokenExpires = (0, tokens_1.getTokenExpiration)(7 * 24 * 60); // 7 days
         // Update user with new refresh token and reset failed attempts
         await prisma.user.update({
             where: { id: user.id },
@@ -241,7 +241,7 @@ exports.getCurrentUser = getCurrentUser;
 // Verify email
 const verifyEmail = async (req, res) => {
     try {
-        const validation = validators_js_1.verifyEmailSchema.safeParse(req.body);
+        const validation = validators_1.verifyEmailSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
@@ -290,7 +290,7 @@ exports.verifyEmail = verifyEmail;
 // Forgot password
 const forgotPassword = async (req, res) => {
     try {
-        const validation = validators_js_1.forgotPasswordSchema.safeParse(req.body);
+        const validation = validators_1.forgotPasswordSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
@@ -310,8 +310,8 @@ const forgotPassword = async (req, res) => {
             });
         }
         // Generate reset token
-        const passwordResetToken = (0, tokens_js_1.generateRandomToken)();
-        const passwordResetExpires = (0, tokens_js_1.getTokenExpiration)(60); // 1 hour
+        const passwordResetToken = (0, tokens_1.generateRandomToken)();
+        const passwordResetExpires = (0, tokens_1.getTokenExpiration)(60); // 1 hour
         // Save token to user
         await prisma.user.update({
             where: { id: user.id },
@@ -322,7 +322,7 @@ const forgotPassword = async (req, res) => {
         });
         // Send reset email
         try {
-            await (0, email_js_1.sendPasswordResetEmail)(email, passwordResetToken);
+            await (0, email_1.sendPasswordResetEmail)(email, passwordResetToken);
             return res.status(200).json({
                 success: true,
                 message: 'Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn.'
@@ -348,7 +348,7 @@ exports.forgotPassword = forgotPassword;
 // Reset password
 const resetPassword = async (req, res) => {
     try {
-        const validation = validators_js_1.resetPasswordSchema.safeParse(req.body);
+        const validation = validators_1.resetPasswordSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
@@ -402,7 +402,7 @@ exports.resetPassword = resetPassword;
 // Refresh token
 const refreshToken = async (req, res) => {
     try {
-        const validation = validators_js_1.refreshTokenSchema.safeParse(req.body);
+        const validation = validators_1.refreshTokenSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
                 success: false,
@@ -427,9 +427,9 @@ const refreshToken = async (req, res) => {
             });
         }
         // Generate new tokens
-        const newAccessToken = (0, tokens_js_1.generateAccessToken)(user.id, user.email, user.role);
-        const newRefreshToken = (0, tokens_js_1.generateRefreshToken)(user.id);
-        const refreshTokenExpires = (0, tokens_js_1.getTokenExpiration)(7 * 24 * 60); // 7 days
+        const newAccessToken = (0, tokens_1.generateAccessToken)(user.id, user.email, user.role);
+        const newRefreshToken = (0, tokens_1.generateRefreshToken)(user.id);
+        const refreshTokenExpires = (0, tokens_1.getTokenExpiration)(7 * 24 * 60); // 7 days
         // Update refresh token in database
         await prisma.user.update({
             where: { id: user.id },

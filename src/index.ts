@@ -9,8 +9,12 @@ const app = express();
 const prisma = new PrismaClient();
 
 // CORS configuration
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',')
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'];
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -19,22 +23,31 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 
+// Health check route
+app.get("/health", (_req, res) => {
+  res.status(200).json({ 
+    status: "OK", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Test route
 app.get("/", (_req, res) => {
   res.json({ message: "Backend is running 🚀" });
 });
 
 // Import routes
-import jobRoutes from "./routes/jobRoutes.js";
-import applicationRoutes from "./routes/applicationRoutes.js";
-import hiringRoutes from "./routes/hiringRoutes.js";
-import newsRoutes from "./routes/newsRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import newJobRoutes from "./routes/newJobRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
+import jobRoutes from "./routes/jobRoutes";
+import applicationRoutes from "./routes/applicationRoutes";
+import hiringRoutes from "./routes/hiringRoutes";
+import newsRoutes from "./routes/newsRoutes";
+import userRoutes from "./routes/userRoutes";
+import newJobRoutes from "./routes/newJobRoutes";
+import adminRoutes from "./routes/adminRoutes";
 
 // Import middleware
-import { auth } from "./middleware/auth.js";
+import { auth } from "./middleware/auth";
 
 // Public routes
 app.use("/api/users", userRoutes);

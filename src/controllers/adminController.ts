@@ -3,8 +3,8 @@ import bcrypt from 'bcrypt';
 import { 
   generateAccessToken, 
   generateRefreshToken
-} from '../utils/tokens.js';
-import prisma from '../lib/prisma.js';
+} from '../utils/tokens';
+import prisma from '../lib/prisma';
 
 // Admin login
 export const adminLogin = async (req: Request, res: Response): Promise<Response> => {

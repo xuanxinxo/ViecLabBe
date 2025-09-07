@@ -5,8 +5,8 @@ import {
   createHiring,
   updateHiring,
   deleteHiring,
-} from '../controllers/hiringController.js';
-import { auth } from '../middleware/auth.js';
+} from '../controllers/hiringController';
+import { auth } from '../middleware/auth';
 
 const router = Router();
 

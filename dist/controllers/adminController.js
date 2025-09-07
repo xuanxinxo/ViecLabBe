@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateSystemSettings = exports.getSystemSettings = exports.deleteHiring = exports.updateHiring = exports.createHiring = exports.getAllHirings = exports.deleteNews = exports.updateNews = exports.createNews = exports.getAllNews = exports.getAllApplications = exports.updateJobStatus = exports.getAllJobs = exports.deleteUser = exports.updateUserRole = exports.getUserById = exports.getAllUsers = exports.getDashboardStats = exports.getAdminProfile = exports.adminLogin = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const tokens_js_1 = require("../utils/tokens.js");
-const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
+const tokens_1 = require("../utils/tokens");
+const prisma_1 = __importDefault(require("../lib/prisma"));
 // Admin login
 const adminLogin = async (req, res) => {
     try {
@@ -47,8 +47,8 @@ const adminLogin = async (req, res) => {
             });
         }
         // Generate tokens
-        const accessToken = (0, tokens_js_1.generateAccessToken)('0', username, adminRole);
-        const refreshToken = (0, tokens_js_1.generateRefreshToken)('0');
+        const accessToken = (0, tokens_1.generateAccessToken)('0', username, adminRole);
+        const refreshToken = (0, tokens_1.generateRefreshToken)('0');
         return res.status(200).json({
             success: true,
             message: 'Đăng nhập thành công',
@@ -99,11 +99,11 @@ exports.getAdminProfile = getAdminProfile;
 const getDashboardStats = async (_req, res) => {
     try {
         const [totalUsers, totalJobs, totalApplications, totalNews, recentUsers, recentJobs, recentApplications] = await Promise.all([
-            prisma_js_1.default.user.count(),
-            prisma_js_1.default.job.count(),
-            prisma_js_1.default.application.count(),
-            prisma_js_1.default.newJob.count(),
-            prisma_js_1.default.user.findMany({
+            prisma_1.default.user.count(),
+            prisma_1.default.job.count(),
+            prisma_1.default.application.count(),
+            prisma_1.default.newJob.count(),
+            prisma_1.default.user.findMany({
                 take: 5,
                 select: {
                     id: true,
@@ -113,7 +113,7 @@ const getDashboardStats = async (_req, res) => {
                 },
                 orderBy: { createdAt: 'desc' }
             }),
-            prisma_js_1.default.job.findMany({
+            prisma_1.default.job.findMany({
                 take: 5,
                 select: {
                     id: true,
@@ -123,7 +123,7 @@ const getDashboardStats = async (_req, res) => {
                 },
                 orderBy: { postedDate: 'desc' }
             }),
-            prisma_js_1.default.application.findMany({
+            prisma_1.default.application.findMany({
                 take: 5,
                 include: {
                     job: {
@@ -179,7 +179,7 @@ const getAllUsers = async (req, res) => {
             where.role = role;
         }
         const [users, total] = await Promise.all([
-            prisma_js_1.default.user.findMany({
+            prisma_1.default.user.findMany({
                 where,
                 skip,
                 take: Number(limit),
@@ -196,7 +196,7 @@ const getAllUsers = async (req, res) => {
                 },
                 orderBy: { createdAt: 'desc' }
             }),
-            prisma_js_1.default.user.count({ where })
+            prisma_1.default.user.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -224,7 +224,7 @@ exports.getAllUsers = getAllUsers;
 const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await prisma_js_1.default.user.findUnique({
+        const user = await prisma_1.default.user.findUnique({
             where: { id },
             select: {
                 id: true,
@@ -269,7 +269,7 @@ const updateUserRole = async (req, res) => {
                 message: 'Role không hợp lệ'
             });
         }
-        const user = await prisma_js_1.default.user.update({
+        const user = await prisma_1.default.user.update({
             where: { id },
             data: { role },
             select: {
@@ -298,7 +298,7 @@ exports.updateUserRole = updateUserRole;
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma_js_1.default.user.delete({
+        await prisma_1.default.user.delete({
             where: { id }
         });
         return res.status(200).json({
@@ -327,13 +327,13 @@ const getAllJobs = async (req, res) => {
         if (type)
             where.type = type;
         const [jobs, total] = await Promise.all([
-            prisma_js_1.default.job.findMany({
+            prisma_1.default.job.findMany({
                 where,
                 skip,
                 take: Number(limit),
                 orderBy: { postedDate: 'desc' }
             }),
-            prisma_js_1.default.job.count({ where })
+            prisma_1.default.job.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -368,7 +368,7 @@ const updateJobStatus = async (req, res) => {
                 message: 'Status không hợp lệ'
             });
         }
-        const job = await prisma_js_1.default.job.update({
+        const job = await prisma_1.default.job.update({
             where: { id },
             data: { status }
         });
@@ -397,7 +397,7 @@ const getAllApplications = async (req, res) => {
         if (jobId)
             where.jobId = jobId;
         const [applications, total] = await Promise.all([
-            prisma_js_1.default.application.findMany({
+            prisma_1.default.application.findMany({
                 where,
                 skip,
                 take: Number(limit),
@@ -412,7 +412,7 @@ const getAllApplications = async (req, res) => {
                 },
                 orderBy: { createdAt: 'desc' }
             }),
-            prisma_js_1.default.application.count({ where })
+            prisma_1.default.application.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -446,13 +446,13 @@ const getAllNews = async (req, res) => {
         if (status)
             where.status = status;
         const [news, total] = await Promise.all([
-            prisma_js_1.default.newJob.findMany({
+            prisma_1.default.newJob.findMany({
                 where,
                 skip,
                 take: Number(limit),
                 orderBy: { postedDate: 'desc' }
             }),
-            prisma_js_1.default.newJob.count({ where })
+            prisma_1.default.newJob.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -486,7 +486,7 @@ const createNews = async (req, res) => {
                 message: 'Vui lòng điền đầy đủ thông tin bắt buộc'
             });
         }
-        const news = await prisma_js_1.default.newJob.create({
+        const news = await prisma_1.default.newJob.create({
             data: {
                 title,
                 description: content,
@@ -535,7 +535,7 @@ const updateNews = async (req, res) => {
             updateData.status = status;
         if (tags)
             updateData.tags = tags;
-        const news = await prisma_js_1.default.newJob.update({
+        const news = await prisma_1.default.newJob.update({
             where: { id },
             data: updateData
         });
@@ -558,7 +558,7 @@ exports.updateNews = updateNews;
 const deleteNews = async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma_js_1.default.newJob.delete({
+        await prisma_1.default.newJob.delete({
             where: { id }
         });
         return res.status(200).json({
@@ -585,13 +585,13 @@ const getAllHirings = async (req, res) => {
         if (status)
             where.status = status;
         const [hirings, total] = await Promise.all([
-            prisma_js_1.default.hiring.findMany({
+            prisma_1.default.hiring.findMany({
                 where,
                 skip,
                 take: Number(limit),
                 orderBy: { postedDate: 'desc' }
             }),
-            prisma_js_1.default.hiring.count({ where })
+            prisma_1.default.hiring.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -625,7 +625,7 @@ const createHiring = async (req, res) => {
                 message: 'Vui lòng điền đầy đủ thông tin bắt buộc'
             });
         }
-        const hiring = await prisma_js_1.default.hiring.create({
+        const hiring = await prisma_1.default.hiring.create({
             data: {
                 title,
                 company,
@@ -663,7 +663,7 @@ const updateHiring = async (req, res) => {
         if (updateData.deadline) {
             updateData.deadline = new Date(updateData.deadline);
         }
-        const hiring = await prisma_js_1.default.hiring.update({
+        const hiring = await prisma_1.default.hiring.update({
             where: { id },
             data: updateData
         });
@@ -686,7 +686,7 @@ exports.updateHiring = updateHiring;
 const deleteHiring = async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma_js_1.default.hiring.delete({
+        await prisma_1.default.hiring.delete({
             where: { id }
         });
         return res.status(200).json({

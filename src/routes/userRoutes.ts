@@ -10,17 +10,17 @@ import {
   resetPassword,
   refreshToken,
   logout
-} from '../controllers/userController.js';
-import { validateRequest } from '../middleware/validateRequest.js';
+} from '../controllers/userController';
+import { validateRequest } from '../middleware/validateRequest';
 import { 
   registerSchema, 
   loginSchema, 
   forgotPasswordSchema,
   resetPasswordSchema, 
   refreshTokenSchema 
-} from '../utils/validators.js';
-import { authLimiter } from '../middleware/rateLimit.js';
-import { auth } from '../middleware/auth.js';
+} from '../utils/validators';
+import { authLimiter } from '../middleware/rateLimit';
+import { auth } from '../middleware/auth';
 
 const router = Router();
 

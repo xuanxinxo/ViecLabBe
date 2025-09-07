@@ -5,8 +5,8 @@ import {
   createJob, 
   updateJob, 
   deleteJob 
-} from '../controllers/jobController.js';
-import { auth } from '../middleware/auth.js';
+} from '../controllers/jobController';
+import { auth } from '../middleware/auth';
 
 const router = Router();
 

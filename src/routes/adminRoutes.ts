@@ -20,9 +20,9 @@ import {
   deleteHiring,
   getSystemSettings,
   updateSystemSettings
-} from '../controllers/adminController.js';
-import { authLimiter } from '../middleware/rateLimit.js';
-import { adminAuth } from '../middleware/adminAuth.js';
+} from '../controllers/adminController';
+import { authLimiter } from '../middleware/rateLimit';
+import { adminAuth } from '../middleware/adminAuth';
 
 const router = Router();
 
