@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "npx prisma generate && tsc",
+    "build": "prisma generate && tsc",
     "postinstall": "echo 'Postinstall completed'",
     "start": "node dist/index.js",
     "test": "echo \"No tests specified\" && exit 0",
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "prisma": "^6.15.0",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
@@ -39,7 +40,6 @@
     "@types/nodemailer": "^7.0.1",
     "cross-env": "^7.0.3",
     "nodemon": "^3.1.10",
-    "prisma": "^6.15.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
