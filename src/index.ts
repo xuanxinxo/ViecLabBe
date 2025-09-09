@@ -37,6 +37,11 @@ app.get("/", (_req, res) => {
   res.json({ message: "Backend is running 🚀" });
 });
 
+// Admin panel route
+app.get("/admin", (_req, res) => {
+  res.sendFile("admin.html", { root: __dirname + "/../" });
+});
+
 // Import routes
 import jobRoutes from "./routes/jobRoutes";
 import applicationRoutes from "./routes/applicationRoutes";

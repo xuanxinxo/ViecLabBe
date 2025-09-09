@@ -34,6 +34,10 @@ app.get("/health", (_req, res) => {
 app.get("/", (_req, res) => {
     res.json({ message: "Backend is running 🚀" });
 });
+// Admin panel route
+app.get("/admin", (_req, res) => {
+    res.sendFile("admin.html", { root: __dirname + "/../" });
+});
 // Import routes
 const jobRoutes_1 = __importDefault(require("./routes/jobRoutes"));
 const applicationRoutes_1 = __importDefault(require("./routes/applicationRoutes"));

@@ -7,26 +7,22 @@ const prisma = new client_1.PrismaClient();
 // Lấy tất cả NewJob
 const getAllNewJobs = async (_req, res) => {
     try {
-        console.log('Fetching all new jobs...');
         const jobs = await prisma.newJob.findMany({
             orderBy: {
                 createdAt: 'desc',
             },
         });
-        console.log(`Found ${jobs.length} jobs`);
-        if (jobs.length === 0) {
-            console.log('No jobs found in the database');
-            // Check if the collection exists
-            const collections = await prisma.$runCommandRaw({ listCollections: 1 });
-            console.log('Available collections:', collections);
-        }
-        res.json(jobs);
+        return res.status(200).json({
+            success: true,
+            count: jobs.length,
+            data: jobs
+        });
     }
     catch (error) {
         console.error('Error fetching new jobs:', error);
-        res.status(500).json({
-            error: "Lỗi server",
-            details: error instanceof Error ? error.message : 'Unknown error'
+        return res.status(500).json({
+            success: false,
+            error: "Lỗi server khi lấy danh sách new jobs"
         });
     }
 };
@@ -34,55 +30,159 @@ exports.getAllNewJobs = getAllNewJobs;
 // Lấy NewJob theo id
 const getNewJobById = async (req, res) => {
     try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: "Job ID is required"
+            });
+        }
         const job = await prisma.newJob.findUnique({
-            where: { id: req.params.id },
+            where: { id },
         });
-        if (!job)
-            return res.status(404).json({ error: "Không tìm thấy job" });
-        return res.json(job);
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                error: "Không tìm thấy job"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            data: job
+        });
     }
     catch (error) {
-        return res.status(500).json({ error: "Lỗi server" });
+        console.error('Error getting new job:', error);
+        return res.status(500).json({
+            success: false,
+            error: "Lỗi server khi lấy thông tin job"
+        });
     }
 };
 exports.getNewJobById = getNewJobById;
 // Tạo NewJob mới
 const createNewJob = async (req, res) => {
     try {
+        const { title, company, location, type, salary, description, requirements = [], benefits = [], deadline, isRemote = false, tags = [], img, status = 'active' } = req.body;
+        // Validation
+        if (!title || !company || !location || !type || !salary || !description || !deadline) {
+            return res.status(400).json({
+                success: false,
+                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc'
+            });
+        }
         const job = await prisma.newJob.create({
-            data: req.body,
+            data: {
+                title,
+                company,
+                location,
+                type,
+                salary,
+                description,
+                requirements,
+                benefits,
+                deadline: new Date(deadline),
+                isRemote: Boolean(isRemote),
+                tags,
+                img: img || '',
+                status,
+                postedDate: new Date(),
+                createdAt: new Date()
+            },
         });
-        res.status(201).json(job);
+        return res.status(201).json({
+            success: true,
+            message: 'Tạo new job thành công',
+            data: job
+        });
     }
     catch (error) {
-        res.status(500).json({ error: "Lỗi server" });
+        console.error('Error creating new job:', error);
+        return res.status(500).json({
+            success: false,
+            error: "Lỗi server khi tạo new job"
+        });
     }
 };
 exports.createNewJob = createNewJob;
 // Cập nhật NewJob
 const updateNewJob = async (req, res) => {
     try {
-        const job = await prisma.newJob.update({
-            where: { id: req.params.id },
-            data: req.body,
+        const { id } = req.params;
+        const updateData = req.body;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: "Job ID is required"
+            });
+        }
+        // Check if job exists
+        const existingJob = await prisma.newJob.findUnique({
+            where: { id },
         });
-        res.json(job);
+        if (!existingJob) {
+            return res.status(404).json({
+                success: false,
+                error: "Job không tồn tại"
+            });
+        }
+        // Handle date fields
+        if (updateData.deadline) {
+            updateData.deadline = new Date(updateData.deadline);
+        }
+        const job = await prisma.newJob.update({
+            where: { id },
+            data: updateData,
+        });
+        return res.status(200).json({
+            success: true,
+            message: 'Cập nhật new job thành công',
+            data: job
+        });
     }
     catch (error) {
-        res.status(500).json({ error: "Lỗi server" });
+        console.error('Error updating new job:', error);
+        return res.status(500).json({
+            success: false,
+            error: "Lỗi server khi cập nhật new job"
+        });
     }
 };
 exports.updateNewJob = updateNewJob;
 // Xóa NewJob
 const deleteNewJob = async (req, res) => {
     try {
-        await prisma.newJob.delete({
-            where: { id: req.params.id },
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                error: "Job ID is required"
+            });
+        }
+        // Check if job exists
+        const existingJob = await prisma.newJob.findUnique({
+            where: { id },
         });
-        res.json({ message: "Đã xóa job" });
+        if (!existingJob) {
+            return res.status(404).json({
+                success: false,
+                error: "Job không tồn tại"
+            });
+        }
+        await prisma.newJob.delete({
+            where: { id },
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Xóa new job thành công"
+        });
     }
     catch (error) {
-        res.status(500).json({ error: "Lỗi server" });
+        console.error('Error deleting new job:', error);
+        return res.status(500).json({
+            success: false,
+            error: "Lỗi server khi xóa new job"
+        });
     }
 };
 exports.deleteNewJob = deleteNewJob;
