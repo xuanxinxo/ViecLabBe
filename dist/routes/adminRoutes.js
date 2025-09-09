@@ -18,9 +18,15 @@ router.put('/users/:id/role', adminAuth_1.adminAuth, adminController_1.updateUse
 router.delete('/users/:id', adminAuth_1.adminAuth, adminController_1.deleteUser);
 // Job management
 router.get('/jobs', adminAuth_1.adminAuth, adminController_1.getAllJobs);
+router.post('/jobs', adminAuth_1.adminAuth, adminController_1.createJob);
+router.put('/jobs/:id', adminAuth_1.adminAuth, adminController_1.updateJob);
+router.delete('/jobs/:id', adminAuth_1.adminAuth, adminController_1.deleteJob);
 router.put('/jobs/:id/status', adminAuth_1.adminAuth, adminController_1.updateJobStatus);
 // Application management
 router.get('/applications', adminAuth_1.adminAuth, adminController_1.getAllApplications);
+router.post('/applications', adminAuth_1.adminAuth, adminController_1.createApplication);
+router.put('/applications/:id', adminAuth_1.adminAuth, adminController_1.updateApplication);
+router.delete('/applications/:id', adminAuth_1.adminAuth, adminController_1.deleteApplication);
 // News management
 router.get('/news', adminAuth_1.adminAuth, adminController_1.getAllNews);
 router.post('/news', adminAuth_1.adminAuth, adminController_1.createNews);
@@ -31,6 +37,11 @@ router.get('/hirings', adminAuth_1.adminAuth, adminController_1.getAllHirings);
 router.post('/hirings', adminAuth_1.adminAuth, adminController_1.createHiring);
 router.put('/hirings/:id', adminAuth_1.adminAuth, adminController_1.updateHiring);
 router.delete('/hirings/:id', adminAuth_1.adminAuth, adminController_1.deleteHiring);
+// NewJobs management
+router.get('/newjobs', adminAuth_1.adminAuth, adminController_1.getAllNewJobs);
+router.post('/newjobs', adminAuth_1.adminAuth, adminController_1.createNewJob);
+router.put('/newjobs/:id', adminAuth_1.adminAuth, adminController_1.updateNewJob);
+router.delete('/newjobs/:id', adminAuth_1.adminAuth, adminController_1.deleteNewJob);
 // System settings
 router.get('/settings', adminAuth_1.adminAuth, adminController_1.getSystemSettings);
 router.put('/settings', adminAuth_1.adminAuth, adminController_1.updateSystemSettings);

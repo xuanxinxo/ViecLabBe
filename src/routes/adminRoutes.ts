@@ -7,8 +7,14 @@ import {
   updateUserRole,
   deleteUser,
   getAllJobs,
+  createJob,
+  updateJob,
+  deleteJob,
   updateJobStatus,
   getAllApplications,
+  createApplication,
+  updateApplication,
+  deleteApplication,
   getDashboardStats,
   getAllNews,
   createNews,
@@ -18,6 +24,10 @@ import {
   createHiring,
   updateHiring,
   deleteHiring,
+  getAllNewJobs,
+  createNewJob,
+  updateNewJob,
+  deleteNewJob,
   getSystemSettings,
   updateSystemSettings
 } from '../controllers/adminController';
@@ -44,10 +54,16 @@ router.delete('/users/:id', adminAuth, deleteUser);
 
 // Job management
 router.get('/jobs', adminAuth, getAllJobs);
+router.post('/jobs', adminAuth, createJob);
+router.put('/jobs/:id', adminAuth, updateJob);
+router.delete('/jobs/:id', adminAuth, deleteJob);
 router.put('/jobs/:id/status', adminAuth, updateJobStatus);
 
 // Application management
 router.get('/applications', adminAuth, getAllApplications);
+router.post('/applications', adminAuth, createApplication);
+router.put('/applications/:id', adminAuth, updateApplication);
+router.delete('/applications/:id', adminAuth, deleteApplication);
 
 // News management
 router.get('/news', adminAuth, getAllNews);
@@ -60,6 +76,12 @@ router.get('/hirings', adminAuth, getAllHirings);
 router.post('/hirings', adminAuth, createHiring);
 router.put('/hirings/:id', adminAuth, updateHiring);
 router.delete('/hirings/:id', adminAuth, deleteHiring);
+
+// NewJobs management
+router.get('/newjobs', adminAuth, getAllNewJobs);
+router.post('/newjobs', adminAuth, createNewJob);
+router.put('/newjobs/:id', adminAuth, updateNewJob);
+router.delete('/newjobs/:id', adminAuth, deleteNewJob);
 
 // System settings
 router.get('/settings', adminAuth, getSystemSettings);
