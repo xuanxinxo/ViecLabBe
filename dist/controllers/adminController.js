@@ -201,7 +201,7 @@ const getAllUsers = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                users,
+                items: users,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
@@ -338,7 +338,7 @@ const getAllJobs = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                jobs,
+                items: jobs,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
@@ -508,7 +508,7 @@ const getAllApplications = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                applications,
+                items: applications,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
@@ -630,7 +630,7 @@ const getAllNews = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                news,
+                items: news,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
@@ -769,7 +769,7 @@ const getAllHirings = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                hirings,
+                items: hirings,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
@@ -899,7 +899,7 @@ const getAllNewJobs = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                newJobs,
+                items: newJobs,
                 pagination: {
                     page: Number(page),
                     limit: Number(limit),
@@ -928,7 +928,7 @@ const createNewJob = async (req, res) => {
                 message: 'Vui lòng điền đầy đủ thông tin bắt buộc'
             });
         }
-        const newJob = await prisma_1.default.newJob.create({
+        const newJob = await prisma_1.default.job.create({
             data: {
                 title,
                 company,
@@ -943,8 +943,7 @@ const createNewJob = async (req, res) => {
                 isRemote,
                 img,
                 status,
-                postedDate: new Date(),
-                createdAt: new Date()
+                postedDate: new Date()
             }
         });
         return res.status(201).json({

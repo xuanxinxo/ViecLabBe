@@ -214,7 +214,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<Response
     return res.status(200).json({
       success: true,
       data: {
-        users,
+        items: users,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -357,7 +357,7 @@ export const getAllJobs = async (req: Request, res: Response): Promise<Response>
     return res.status(200).json({
       success: true,
       data: {
-        jobs,
+        items: jobs,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -549,7 +549,7 @@ export const getAllApplications = async (req: Request, res: Response): Promise<R
     return res.status(200).json({
       success: true,
       data: {
-        applications,
+        items: applications,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -685,7 +685,7 @@ export const getAllNews = async (req: Request, res: Response): Promise<Response>
     return res.status(200).json({
       success: true,
       data: {
-        news,
+        items: news,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -838,7 +838,7 @@ export const getAllHirings = async (req: Request, res: Response): Promise<Respon
     return res.status(200).json({
       success: true,
       data: {
-        hirings,
+        items: hirings,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -985,7 +985,7 @@ export const getAllNewJobs = async (req: Request, res: Response): Promise<Respon
     return res.status(200).json({
       success: true,
       data: {
-        newJobs,
+        items: newJobs,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -1029,7 +1029,7 @@ export const createNewJob = async (req: Request, res: Response): Promise<Respons
       });
     }
 
-    const newJob = await prisma.newJob.create({
+    const newJob = await prisma.job.create({
       data: {
         title,
         company,
@@ -1044,8 +1044,7 @@ export const createNewJob = async (req: Request, res: Response): Promise<Respons
         isRemote,
         img,
         status,
-        postedDate: new Date(),
-        createdAt: new Date()
+        postedDate: new Date()
       }
     });
 
