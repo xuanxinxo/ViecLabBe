@@ -34,14 +34,33 @@ async function getApplicationWithRelations(application: any) {
 
 const prisma = new PrismaClient();
 
-// Lấy tất cả đơn ứng tuyển (admin only)
+// Lấy tất cả đơn ứng tuyển (admin only) với pagination và tối ưu
 export const getApplications = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { status, sort, limit } = req.query as { [key: string]: string | undefined };
+    const { 
+      status, 
+      sort, 
+      page = '1', 
+      limit = '10',
+      search 
+    } = req.query as { [key: string]: string | undefined };
+
+    const pageNum = parseInt(page, 10);
+    const limitNum = Math.min(parseInt(limit, 10), 50);
+    const skip = (pageNum - 1) * limitNum;
 
     const where: any = {};
     if (status) {
       where.status = status;
+    }
+
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { message: { contains: search, mode: 'insensitive' } }
+      ];
     }
 
     let orderBy: any = { createdAt: 'desc' };
@@ -50,22 +69,44 @@ export const getApplications = async (req: Request, res: Response): Promise<Resp
       else if (sort === 'createdAt') orderBy = { createdAt: 'asc' };
     }
 
-    const take = limit ? Math.max(0, parseInt(limit, 10)) : undefined;
-
-    const applications = await prisma.application.findMany({
-      where,
-      orderBy,
-      take,
-    });
-
-    const applicationsWithRelations = await Promise.all(
-      applications.map(app => getApplicationWithRelations(app))
-    );
+    // Use include to get relations in single query (avoid N+1)
+    const [applications, total] = await Promise.all([
+      prisma.application.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limitNum,
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              company: true
+            }
+          },
+          hiring: {
+            select: {
+              id: true,
+              title: true,
+              company: true
+            }
+          }
+        }
+      }),
+      prisma.application.count({ where })
+    ]);
 
     return res.status(200).json({
       success: true,
-      count: applicationsWithRelations.length,
-      data: applicationsWithRelations,
+      data: {
+        items: applications,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
     });
   } catch (error) {
     console.error('Error getting applications:', error);

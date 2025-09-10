@@ -1,10 +1,22 @@
 import { Request, Response } from "express";
 import prisma from '../lib/prisma';
 
-// Lấy tất cả jobs
+// Lấy tất cả jobs với pagination
 export const getJobs = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { status, type, location, isRemote } = req.query;
+    const { 
+      status, 
+      type, 
+      location, 
+      isRemote, 
+      page = '1', 
+      limit = '10',
+      search 
+    } = req.query;
+    
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = Math.min(parseInt(limit as string, 10), 50); // Max 50 items per page
+    const skip = (pageNum - 1) * limitNum;
     
     const where: any = {};
     
@@ -13,17 +25,56 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
     if (location) where.location = { contains: location as string, mode: 'insensitive' };
     if (isRemote !== undefined) where.isRemote = isRemote === 'true';
     
-    const jobs = await prisma.job.findMany({
-      where,
-      orderBy: {
-        postedDate: 'desc',
-      },
-    });
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { company: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+    
+    // Use Promise.all for parallel queries
+    const [jobs, total] = await Promise.all([
+      prisma.job.findMany({
+        where,
+        orderBy: {
+          postedDate: 'desc',
+        },
+        skip,
+        take: limitNum,
+        select: {
+          id: true,
+          title: true,
+          company: true,
+          location: true,
+          type: true,
+          salary: true,
+          description: true,
+          requirements: true,
+          benefits: true,
+          deadline: true,
+          isRemote: true,
+          tags: true,
+          status: true,
+          postedDate: true,
+          img: true
+        }
+      }),
+      prisma.job.count({ where })
+    ]);
     
     return res.status(200).json({
       success: true,
-      count: jobs.length,
-      data: jobs,
+      data: {
+        items: jobs,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
     });
   } catch (error) {
     console.error('Error getting jobs:', error);

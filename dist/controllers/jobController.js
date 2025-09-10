@@ -5,10 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateJob = exports.deleteJob = exports.createJob = exports.getJobById = exports.getJobs = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
-// Lấy tất cả jobs
+// Lấy tất cả jobs với pagination
 const getJobs = async (req, res) => {
     try {
-        const { status, type, location, isRemote } = req.query;
+        const { status, type, location, isRemote, page = '1', limit = '10', search } = req.query;
+        const pageNum = parseInt(page, 10);
+        const limitNum = Math.min(parseInt(limit, 10), 50); // Max 50 items per page
+        const skip = (pageNum - 1) * limitNum;
         const where = {};
         if (status)
             where.status = status;
@@ -18,16 +21,54 @@ const getJobs = async (req, res) => {
             where.location = { contains: location, mode: 'insensitive' };
         if (isRemote !== undefined)
             where.isRemote = isRemote === 'true';
-        const jobs = await prisma_1.default.job.findMany({
-            where,
-            orderBy: {
-                postedDate: 'desc',
-            },
-        });
+        // Add search functionality
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { company: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+        // Use Promise.all for parallel queries
+        const [jobs, total] = await Promise.all([
+            prisma_1.default.job.findMany({
+                where,
+                orderBy: {
+                    postedDate: 'desc',
+                },
+                skip,
+                take: limitNum,
+                select: {
+                    id: true,
+                    title: true,
+                    company: true,
+                    location: true,
+                    type: true,
+                    salary: true,
+                    description: true,
+                    requirements: true,
+                    benefits: true,
+                    deadline: true,
+                    isRemote: true,
+                    tags: true,
+                    status: true,
+                    postedDate: true,
+                    img: true
+                }
+            }),
+            prisma_1.default.job.count({ where })
+        ]);
         return res.status(200).json({
             success: true,
-            count: jobs.length,
-            data: jobs,
+            data: {
+                items: jobs,
+                pagination: {
+                    page: pageNum,
+                    limit: limitNum,
+                    total,
+                    pages: Math.ceil(total / limitNum)
+                }
+            }
         });
     }
     catch (error) {

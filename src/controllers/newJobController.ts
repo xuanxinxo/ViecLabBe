@@ -4,19 +4,76 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Lấy tất cả NewJob
-export const getAllNewJobs = async (_req: Request, res: Response) => {
+// Lấy tất cả NewJob với pagination
+export const getAllNewJobs = async (req: Request, res: Response) => {
   try {
-    const jobs = await prisma.newJob.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const { 
+      page = '1', 
+      limit = '10', 
+      search,
+      type,
+      location 
+    } = req.query;
+    
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = Math.min(parseInt(limit as string, 10), 50);
+    const skip = (pageNum - 1) * limitNum;
+    
+    const where: any = {};
+    
+    if (type) where.type = type;
+    if (location) where.location = { contains: location as string, mode: 'insensitive' };
+    
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { company: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+    
+    const [jobs, total] = await Promise.all([
+      prisma.newJob.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limitNum,
+        select: {
+          id: true,
+          title: true,
+          company: true,
+          location: true,
+          type: true,
+          salary: true,
+          description: true,
+          requirements: true,
+          benefits: true,
+          deadline: true,
+          isRemote: true,
+          tags: true,
+          status: true,
+          postedDate: true,
+          createdAt: true,
+          img: true
+        }
+      }),
+      prisma.newJob.count({ where })
+    ]);
     
     return res.status(200).json({
       success: true,
-      count: jobs.length,
-      data: jobs
+      data: {
+        items: jobs,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
     });
   } catch (error) {
     console.error('Error fetching new jobs:', error);

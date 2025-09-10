@@ -3,15 +3,73 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Lấy tất cả tin tuyển dụng
-export const getHirings = async (_req: Request, res: Response): Promise<Response> => {
+// Lấy tất cả tin tuyển dụng với pagination
+export const getHirings = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const hirings = await prisma.hiring.findMany({
-      orderBy: {
-        postedDate: 'desc'
+    const { 
+      page = '1', 
+      limit = '10', 
+      search,
+      type,
+      location 
+    } = req.query;
+    
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = Math.min(parseInt(limit as string, 10), 50);
+    const skip = (pageNum - 1) * limitNum;
+    
+    const where: any = {};
+    
+    if (type) where.type = type;
+    if (location) where.location = { contains: location as string, mode: 'insensitive' };
+    
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { company: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+    
+    const [hirings, total] = await Promise.all([
+      prisma.hiring.findMany({
+        where,
+        orderBy: {
+          postedDate: 'desc'
+        },
+        skip,
+        take: limitNum,
+        select: {
+          id: true,
+          title: true,
+          company: true,
+          location: true,
+          type: true,
+          salary: true,
+          description: true,
+          requirements: true,
+          benefits: true,
+          deadline: true,
+          postedDate: true,
+          img: true
+        }
+      }),
+      prisma.hiring.count({ where })
+    ]);
+    
+    return res.status(200).json({ 
+      success: true, 
+      data: {
+        items: hirings,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
       }
     });
-    return res.status(200).json({ success: true, data: hirings });
   } catch (error) {
     console.error('Error getting hirings:', error);
     return res.status(500).json({ 

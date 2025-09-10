@@ -3,14 +3,63 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Lấy tất cả tin tức
-export const getAllNews = async (_req: Request, res: Response): Promise<Response> => {
+// Lấy tất cả tin tức với pagination
+export const getAllNews = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const news = await prisma.news.findMany();
-    return res.status(200).json(news);
+    const { page = '1', limit = '10', search } = req.query;
+    
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = Math.min(parseInt(limit as string, 10), 50);
+    const skip = (pageNum - 1) * limitNum;
+    
+    const where: any = {};
+    
+    // Add search functionality
+    if (search) {
+      where.OR = [
+        { title: { contains: search as string, mode: 'insensitive' } },
+        { summary: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+    
+    const [news, total] = await Promise.all([
+      prisma.news.findMany({
+        where,
+        orderBy: {
+          date: 'desc'
+        },
+        skip,
+        take: limitNum,
+        select: {
+          id: true,
+          title: true,
+          summary: true,
+          image: true,
+          link: true,
+          date: true
+        }
+      }),
+      prisma.news.count({ where })
+    ]);
+    
+    return res.status(200).json({
+      success: true,
+      data: {
+        items: news,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum)
+        }
+      }
+    });
   } catch (error) {
     console.error('Error getting news:', error);
-    return res.status(500).json({ error: 'Failed to get news' });
+    return res.status(500).json({ 
+      success: false,
+      error: 'Failed to get news' 
+    });
   }
 };
 

@@ -4,18 +4,66 @@ exports.deleteNewJob = exports.updateNewJob = exports.createNewJob = exports.get
 // import { PrismaClient } from "@prisma/client";
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-// Lấy tất cả NewJob
-const getAllNewJobs = async (_req, res) => {
+// Lấy tất cả NewJob với pagination
+const getAllNewJobs = async (req, res) => {
     try {
-        const jobs = await prisma.newJob.findMany({
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
+        const { page = '1', limit = '10', search, type, location } = req.query;
+        const pageNum = parseInt(page, 10);
+        const limitNum = Math.min(parseInt(limit, 10), 50);
+        const skip = (pageNum - 1) * limitNum;
+        const where = {};
+        if (type)
+            where.type = type;
+        if (location)
+            where.location = { contains: location, mode: 'insensitive' };
+        // Add search functionality
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { company: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+        const [jobs, total] = await Promise.all([
+            prisma.newJob.findMany({
+                where,
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                skip,
+                take: limitNum,
+                select: {
+                    id: true,
+                    title: true,
+                    company: true,
+                    location: true,
+                    type: true,
+                    salary: true,
+                    description: true,
+                    requirements: true,
+                    benefits: true,
+                    deadline: true,
+                    isRemote: true,
+                    tags: true,
+                    status: true,
+                    postedDate: true,
+                    createdAt: true,
+                    img: true
+                }
+            }),
+            prisma.newJob.count({ where })
+        ]);
         return res.status(200).json({
             success: true,
-            count: jobs.length,
-            data: jobs
+            data: {
+                items: jobs,
+                pagination: {
+                    page: pageNum,
+                    limit: limitNum,
+                    total,
+                    pages: Math.ceil(total / limitNum)
+                }
+            }
         });
     }
     catch (error) {

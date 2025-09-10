@@ -3,15 +3,59 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteNews = exports.updateNews = exports.getNewsById = exports.createNews = exports.getAllNews = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-// Lấy tất cả tin tức
-const getAllNews = async (_req, res) => {
+// Lấy tất cả tin tức với pagination
+const getAllNews = async (req, res) => {
     try {
-        const news = await prisma.news.findMany();
-        return res.status(200).json(news);
+        const { page = '1', limit = '10', search } = req.query;
+        const pageNum = parseInt(page, 10);
+        const limitNum = Math.min(parseInt(limit, 10), 50);
+        const skip = (pageNum - 1) * limitNum;
+        const where = {};
+        // Add search functionality
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { summary: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+        const [news, total] = await Promise.all([
+            prisma.news.findMany({
+                where,
+                orderBy: {
+                    date: 'desc'
+                },
+                skip,
+                take: limitNum,
+                select: {
+                    id: true,
+                    title: true,
+                    summary: true,
+                    image: true,
+                    link: true,
+                    date: true
+                }
+            }),
+            prisma.news.count({ where })
+        ]);
+        return res.status(200).json({
+            success: true,
+            data: {
+                items: news,
+                pagination: {
+                    page: pageNum,
+                    limit: limitNum,
+                    total,
+                    pages: Math.ceil(total / limitNum)
+                }
+            }
+        });
     }
     catch (error) {
         console.error('Error getting news:', error);
-        return res.status(500).json({ error: 'Failed to get news' });
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to get news'
+        });
     }
 };
 exports.getAllNews = getAllNews;

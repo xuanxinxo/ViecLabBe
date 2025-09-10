@@ -3,15 +3,63 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteHiring = exports.updateHiring = exports.getHiringById = exports.createHiring = exports.getHirings = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
-// Lấy tất cả tin tuyển dụng
-const getHirings = async (_req, res) => {
+// Lấy tất cả tin tuyển dụng với pagination
+const getHirings = async (req, res) => {
     try {
-        const hirings = await prisma.hiring.findMany({
-            orderBy: {
-                postedDate: 'desc'
+        const { page = '1', limit = '10', search, type, location } = req.query;
+        const pageNum = parseInt(page, 10);
+        const limitNum = Math.min(parseInt(limit, 10), 50);
+        const skip = (pageNum - 1) * limitNum;
+        const where = {};
+        if (type)
+            where.type = type;
+        if (location)
+            where.location = { contains: location, mode: 'insensitive' };
+        // Add search functionality
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { company: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+        const [hirings, total] = await Promise.all([
+            prisma.hiring.findMany({
+                where,
+                orderBy: {
+                    postedDate: 'desc'
+                },
+                skip,
+                take: limitNum,
+                select: {
+                    id: true,
+                    title: true,
+                    company: true,
+                    location: true,
+                    type: true,
+                    salary: true,
+                    description: true,
+                    requirements: true,
+                    benefits: true,
+                    deadline: true,
+                    postedDate: true,
+                    img: true
+                }
+            }),
+            prisma.hiring.count({ where })
+        ]);
+        return res.status(200).json({
+            success: true,
+            data: {
+                items: hirings,
+                pagination: {
+                    page: pageNum,
+                    limit: limitNum,
+                    total,
+                    pages: Math.ceil(total / limitNum)
+                }
             }
         });
-        return res.status(200).json({ success: true, data: hirings });
     }
     catch (error) {
         console.error('Error getting hirings:', error);
