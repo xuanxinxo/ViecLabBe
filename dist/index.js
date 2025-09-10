@@ -23,12 +23,28 @@ app.use((0, cors_1.default)({
 // Middleware
 app.use(express_1.default.json());
 // Health check route
-app.get("/health", (_req, res) => {
-    res.status(200).json({
-        status: "OK",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-    });
+app.get("/health", async (_req, res) => {
+    try {
+        // Test database connection
+        await prisma.$connect();
+        await prisma.$disconnect();
+        res.status(200).json({
+            status: "OK",
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            database: "Connected"
+        });
+    }
+    catch (error) {
+        console.error('Health check failed:', error);
+        res.status(503).json({
+            status: "ERROR",
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            database: "Disconnected",
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
 });
 // Test route
 app.get("/", (_req, res) => {
@@ -61,20 +77,34 @@ app.use((err, _req, res, _next) => {
     res.status(500).json({ error: "Đã xảy ra lỗi máy chủ" });
 });
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-    console.log(`🚀 ???????????????????????????????Server running on http://localhost:${PORT}`);
-});
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-    console.log("SIGTERM received. Shutting down gracefully");
-    await prisma.$disconnect();
-    server.close(() => {
-        console.log("Process terminated");
-    });
-});
-process.on("SIGINT", async () => {
-    await prisma.$disconnect();
-    console.log("Prisma connection closed");
-    process.exit(0);
-});
+// Test database connection on startup
+async function startServer() {
+    try {
+        console.log('🔌 Testing database connection...');
+        await prisma.$connect();
+        console.log('✅ Database connected successfully');
+        const server = app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+        });
+        // Graceful shutdown
+        process.on("SIGTERM", async () => {
+            console.log("SIGTERM received. Shutting down gracefully");
+            await prisma.$disconnect();
+            server.close(() => {
+                console.log("Process terminated");
+            });
+        });
+        process.on("SIGINT", async () => {
+            await prisma.$disconnect();
+            console.log("Prisma connection closed");
+            process.exit(0);
+        });
+    }
+    catch (error) {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+    }
+}
+startServer();
 //# sourceMappingURL=index.js.map

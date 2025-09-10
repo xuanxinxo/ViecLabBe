@@ -53,3 +53,4 @@ router.put('/newjobs/:id', adminAuth, updateNewJob);
 router.delete('/newjobs/:id', adminAuth, deleteNewJob);
 
 export default router;
+
