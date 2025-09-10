@@ -69,7 +69,7 @@ exports.getJobById = getJobById;
 // Tạo job mới
 const createJob = async (req, res) => {
     try {
-        const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote = false, tags = [], } = req.body;
+        const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote = false, tags = [], img, } = req.body;
         if (!title || !company || !location || !type || !salary || !description) {
             return res.status(400).json({
                 success: false,
@@ -91,6 +91,7 @@ const createJob = async (req, res) => {
                 status: 'active',
                 deadline: new Date(deadline),
                 postedDate: new Date(),
+                img: img || null,
             },
         });
         return res.status(201).json({
@@ -134,7 +135,7 @@ exports.deleteJob = deleteJob;
 const updateJob = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote, tags, status, } = req.body;
+        const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote, tags, status, img, } = req.body;
         const updatedJob = await prisma_1.default.job.update({
             where: { id },
             data: {
@@ -149,6 +150,7 @@ const updateJob = async (req, res) => {
                 tags,
                 isRemote,
                 status,
+                img,
                 deadline: deadline ? new Date(deadline) : undefined,
             },
         });

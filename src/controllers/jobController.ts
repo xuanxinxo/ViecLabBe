@@ -78,6 +78,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
       deadline,
       isRemote = false,
       tags = [],
+      img,
     } = req.body;
 
     if (!title || !company || !location || !type || !salary || !description) {
@@ -102,6 +103,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
         status: 'active',
         deadline: new Date(deadline),
         postedDate: new Date(),
+        img: img || null,
       },
     });
 
@@ -159,6 +161,7 @@ export const updateJob = async (req: Request, res: Response): Promise<Response> 
       isRemote,
       tags,
       status,
+      img,
     } = req.body;
 
     const updatedJob = await prisma.job.update({
@@ -175,6 +178,7 @@ export const updateJob = async (req: Request, res: Response): Promise<Response> 
         tags,
         isRemote,
         status,
+        img,
         deadline: deadline ? new Date(deadline) : undefined,
       },
     });
