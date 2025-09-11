@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -22,6 +23,9 @@ app.use(cors({
 
 // Middleware
 app.use(express.json());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check route
 app.get("/health", async (_req, res) => {
@@ -66,6 +70,7 @@ import newsRoutes from "./routes/newsRoutes";
 import userRoutes from "./routes/userRoutes";
 import newJobRoutes from "./routes/newJobRoutes";
 import adminRoutes from "./routes/adminRoutes";
+import uploadRoutes from "./routes/uploadRoutes";
 
 // Import middleware
 import { auth } from "./middleware/auth";
@@ -73,6 +78,7 @@ import { auth } from "./middleware/auth";
 // Public routes
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Protected routes
 app.use("/api/jobs", jobRoutes);

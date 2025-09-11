@@ -8,10 +8,10 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 // Lấy tất cả jobs với pagination
 const getJobs = async (req, res) => {
     try {
-        const { status, type, location, isRemote, page = '1', limit = '10', search } = req.query;
+        const { status, type, location, isRemote, page = '1', limit, search } = req.query;
         const pageNum = parseInt(page, 10);
-        const limitNum = Math.min(parseInt(limit, 10), 50); // Max 50 items per page
-        const skip = (pageNum - 1) * limitNum;
+        const limitNum = limit ? parseInt(limit, 10) : undefined; // Không giới hạn nếu không có limit
+        const skip = limitNum ? (pageNum - 1) * limitNum : 0;
         const where = {};
         if (status)
             where.status = status;
@@ -64,9 +64,9 @@ const getJobs = async (req, res) => {
                 items: jobs,
                 pagination: {
                     page: pageNum,
-                    limit: limitNum,
+                    limit: limitNum || total, // Hiển thị total nếu không có limit
                     total,
-                    pages: Math.ceil(total / limitNum)
+                    pages: limitNum ? Math.ceil(total / limitNum) : 1
                 }
             }
         });
@@ -117,6 +117,12 @@ const createJob = async (req, res) => {
                 error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc',
             });
         }
+        // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+        let imageUrl = img || null;
+        // Nếu có file upload, sử dụng URL của file đã upload
+        if (req.file) {
+            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
         const createdJob = await prisma_1.default.job.create({
             data: {
                 title,
@@ -132,7 +138,7 @@ const createJob = async (req, res) => {
                 status: 'active',
                 deadline: new Date(deadline),
                 postedDate: new Date(),
-                img: img || null,
+                img: imageUrl,
             },
         });
         return res.status(201).json({
@@ -177,6 +183,12 @@ const updateJob = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote, tags, status, img, } = req.body;
+        // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+        let imageUrl = img;
+        // Nếu có file upload, sử dụng URL của file đã upload
+        if (req.file) {
+            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
         const updatedJob = await prisma_1.default.job.update({
             where: { id },
             data: {
@@ -191,7 +203,7 @@ const updateJob = async (req, res) => {
                 tags,
                 isRemote,
                 status,
-                img,
+                img: imageUrl,
                 deadline: deadline ? new Date(deadline) : undefined,
             },
         });

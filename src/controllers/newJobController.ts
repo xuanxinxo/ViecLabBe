@@ -6,15 +6,15 @@ export const getAllNewJobs = async (req: Request, res: Response) => {
   try {
     const { 
       page = '1', 
-      limit = '10', 
+      limit, 
       search,
       type,
       location 
     } = req.query;
     
     const pageNum = parseInt(page as string, 10);
-    const limitNum = Math.min(parseInt(limit as string, 10), 50);
-    const skip = (pageNum - 1) * limitNum;
+    const limitNum = limit ? parseInt(limit as string, 10) : undefined; // Không giới hạn nếu không có limit
+    const skip = limitNum ? (pageNum - 1) * limitNum : 0;
     
     const where: any = {};
     
@@ -66,9 +66,9 @@ export const getAllNewJobs = async (req: Request, res: Response) => {
         items: jobs,
         pagination: {
           page: pageNum,
-          limit: limitNum,
+          limit: limitNum || total, // Hiển thị total nếu không có limit
           total,
-          pages: Math.ceil(total / limitNum)
+          pages: limitNum ? Math.ceil(total / limitNum) : 1
         }
       }
     });

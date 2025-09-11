@@ -8,10 +8,10 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 // Lấy tất cả tin tức với pagination
 const getAllNews = async (req, res) => {
     try {
-        const { page = '1', limit = '10', search } = req.query;
+        const { page = '1', limit, search } = req.query;
         const pageNum = parseInt(page, 10);
-        const limitNum = Math.min(parseInt(limit, 10), 50);
-        const skip = (pageNum - 1) * limitNum;
+        const limitNum = limit ? parseInt(limit, 10) : undefined; // Không giới hạn nếu không có limit
+        const skip = limitNum ? (pageNum - 1) * limitNum : 0;
         const where = {};
         // Add search functionality
         if (search) {
@@ -45,9 +45,9 @@ const getAllNews = async (req, res) => {
                 items: news,
                 pagination: {
                     page: pageNum,
-                    limit: limitNum,
+                    limit: limitNum || total, // Hiển thị total nếu không có limit
                     total,
-                    pages: Math.ceil(total / limitNum)
+                    pages: limitNum ? Math.ceil(total / limitNum) : 1
                 }
             }
         });

@@ -10,13 +10,13 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
       location, 
       isRemote, 
       page = '1', 
-      limit = '10',
+      limit,
       search 
     } = req.query;
     
     const pageNum = parseInt(page as string, 10);
-    const limitNum = Math.min(parseInt(limit as string, 10), 50); // Max 50 items per page
-    const skip = (pageNum - 1) * limitNum;
+    const limitNum = limit ? parseInt(limit as string, 10) : undefined; // Không giới hạn nếu không có limit
+    const skip = limitNum ? (pageNum - 1) * limitNum : 0;
     
     const where: any = {};
     
@@ -70,9 +70,9 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
         items: jobs,
         pagination: {
           page: pageNum,
-          limit: limitNum,
+          limit: limitNum || total, // Hiển thị total nếu không có limit
           total,
-          pages: Math.ceil(total / limitNum)
+          pages: limitNum ? Math.ceil(total / limitNum) : 1
         }
       }
     });
@@ -139,6 +139,14 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
       });
     }
 
+    // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+    let imageUrl = img || null;
+    
+    // Nếu có file upload, sử dụng URL của file đã upload
+    if (req.file) {
+      imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
+
     const createdJob = await prisma.job.create({
       data: {
         title,
@@ -154,7 +162,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
         status: 'active',
         deadline: new Date(deadline),
         postedDate: new Date(),
-        img: img || null,
+        img: imageUrl,
       },
     });
 
@@ -215,6 +223,14 @@ export const updateJob = async (req: Request, res: Response): Promise<Response> 
       img,
     } = req.body;
 
+    // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+    let imageUrl = img;
+    
+    // Nếu có file upload, sử dụng URL của file đã upload
+    if (req.file) {
+      imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
+
     const updatedJob = await prisma.job.update({
       where: { id },
       data: {
@@ -229,7 +245,7 @@ export const updateJob = async (req: Request, res: Response): Promise<Response> 
         tags,
         isRemote,
         status,
-        img,
+        img: imageUrl,
         deadline: deadline ? new Date(deadline) : undefined,
       },
     });
