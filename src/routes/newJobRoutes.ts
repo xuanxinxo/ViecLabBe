@@ -7,6 +7,7 @@ import {
   deleteNewJob,
 } from "../controllers/newJobController";
 import { cacheMiddleware, clearCache } from '../middleware/cache';
+import { uploadSingle, handleUploadError } from '../middleware/upload';
 
 const router = Router();
 
@@ -15,18 +16,19 @@ router.get("/", cacheMiddleware(2 * 60 * 1000), getAllNewJobs); // Cache for 2 m
 router.get("/:id", cacheMiddleware(5 * 60 * 1000), getNewJobById); // Cache for 5 minutes
 
 // Public routes (no authentication required) - Dùng chung cho cả home và admin
-router.post("/", (req, res, next) => {
+// Hỗ trợ upload hình ảnh
+router.post("/", (req: any, res: any, next: any) => {
   clearCache('/api/newjobs');
   next();
-}, createNewJob);
-router.put("/:id", (req, res, next) => {
+}, uploadSingle, handleUploadError, createNewJob);
+router.put("/:id", (req: any, res: any, next: any) => {
   clearCache('/api/newjobs');
   next();
-}, updateNewJob);
-router.patch("/:id", (req, res, next) => {
+}, uploadSingle, handleUploadError, updateNewJob);
+router.patch("/:id", (req: any, res: any, next: any) => {
   clearCache('/api/newjobs');
   next();
-}, updateNewJob); // Add PATCH support for partial updates
+}, uploadSingle, handleUploadError, updateNewJob); // Add PATCH support for partial updates
 router.delete("/:id", (req, res, next) => {
   clearCache('/api/newjobs');
   next();
