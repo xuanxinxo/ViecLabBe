@@ -81,7 +81,7 @@ const createHiring = async (req, res) => {
         if (!title || !company || !location || !type || !salary || !deadline) {
             return res.status(400).json({
                 success: false,
-                message: 'Missing required fields: title, company, location, type, salary, deadline'
+                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc: title, company, location, type, salary, deadline'
             });
         }
         // Validate deadline
@@ -89,7 +89,7 @@ const createHiring = async (req, res) => {
         if (isNaN(deadlineDate.getTime())) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid deadline format'
+                error: 'Định dạng deadline không hợp lệ'
             });
         }
         // Xử lý hình ảnh - có thể là URL hoặc file đã upload

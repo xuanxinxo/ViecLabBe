@@ -56,7 +56,7 @@ const getAllNews = async (req, res) => {
         console.error('Error getting news:', error);
         return res.status(500).json({
             success: false,
-            error: 'Failed to get news'
+            error: 'Lỗi server khi lấy danh sách tin tức'
         });
     }
 };
@@ -66,23 +66,39 @@ const createNews = async (req, res) => {
     try {
         const { title, summary, image, link, date } = req.body;
         if (!title || !summary || !link) {
-            return res.status(400).json({ error: 'Title, summary and link are required' });
+            return res.status(400).json({
+                success: false,
+                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc: title, summary, link'
+            });
+        }
+        // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+        let imageUrl = image || null;
+        // Nếu có file upload, sử dụng URL của file đã upload
+        if (req.file) {
+            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
         }
         const news = await prisma_1.default.news.create({
             data: {
                 title,
                 summary,
-                image: image || null,
+                image: imageUrl,
                 link,
                 date: date || new Date().toISOString(),
                 v: 1,
             },
         });
-        return res.status(201).json(news);
+        return res.status(201).json({
+            success: true,
+            message: 'Tạo tin tức thành công',
+            data: news
+        });
     }
     catch (error) {
         console.error('Error creating news:', error);
-        return res.status(500).json({ error: 'Failed to create news' });
+        return res.status(500).json({
+            success: false,
+            error: 'Lỗi server khi tạo tin tức'
+        });
     }
 };
 exports.createNews = createNews;
@@ -94,13 +110,22 @@ const getNewsById = async (req, res) => {
             where: { id },
         });
         if (!newsItem) {
-            return res.status(404).json({ error: 'News not found' });
+            return res.status(404).json({
+                success: false,
+                error: 'Không tìm thấy tin tức'
+            });
         }
-        return res.status(200).json(newsItem);
+        return res.status(200).json({
+            success: true,
+            data: newsItem
+        });
     }
     catch (error) {
         console.error('Error getting news:', error);
-        return res.status(500).json({ error: 'Failed to get news' });
+        return res.status(500).json({
+            success: false,
+            error: 'Lỗi server khi lấy thông tin tin tức'
+        });
     }
 };
 exports.getNewsById = getNewsById;
@@ -109,21 +134,34 @@ const updateNews = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, summary, image, link, date } = req.body;
+        // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+        let imageUrl = image;
+        // Nếu có file upload, sử dụng URL của file đã upload
+        if (req.file) {
+            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
         const updatedNews = await prisma_1.default.news.update({
             where: { id },
             data: {
                 title,
                 summary,
-                image: image || null,
+                image: imageUrl || null,
                 link,
                 date,
             },
         });
-        return res.status(200).json(updatedNews);
+        return res.status(200).json({
+            success: true,
+            message: 'Cập nhật tin tức thành công',
+            data: updatedNews
+        });
     }
     catch (error) {
         console.error('Error updating news:', error);
-        return res.status(500).json({ error: 'Failed to update news' });
+        return res.status(500).json({
+            success: false,
+            error: 'Lỗi server khi cập nhật tin tức'
+        });
     }
 };
 exports.updateNews = updateNews;
@@ -134,11 +172,17 @@ const deleteNews = async (req, res) => {
         await prisma_1.default.news.delete({
             where: { id },
         });
-        return res.status(200).json({ message: 'News deleted successfully' });
+        return res.status(200).json({
+            success: true,
+            message: 'Xóa tin tức thành công'
+        });
     }
     catch (error) {
         console.error('Error deleting news:', error);
-        return res.status(500).json({ error: 'Failed to delete news' });
+        return res.status(500).json({
+            success: false,
+            error: 'Lỗi server khi xóa tin tức'
+        });
     }
 };
 exports.deleteNews = deleteNews;

@@ -117,8 +117,22 @@ const createNewJob = async (req, res) => {
         if (!title || !company || !location || !type || !salary || !description || !deadline) {
             return res.status(400).json({
                 success: false,
-                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc'
+                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc: title, company, location, type, salary, description, deadline'
             });
+        }
+        // Validate deadline
+        const deadlineDate = new Date(deadline);
+        if (isNaN(deadlineDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                error: 'Định dạng deadline không hợp lệ'
+            });
+        }
+        // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+        let imageUrl = img || null;
+        // Nếu có file upload, sử dụng URL của file đã upload
+        if (req.file) {
+            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
         }
         const job = await prisma_1.default.newJob.create({
             data: {
@@ -130,10 +144,10 @@ const createNewJob = async (req, res) => {
                 description,
                 requirements,
                 benefits,
-                deadline: new Date(deadline),
+                deadline: deadlineDate,
                 isRemote: Boolean(isRemote),
                 tags,
-                img: img || null,
+                img: imageUrl,
                 status,
                 postedDate: new Date(),
                 createdAt: new Date()
@@ -175,6 +189,12 @@ const updateNewJob = async (req, res) => {
                 error: "Job không tồn tại"
             });
         }
+        // Xử lý hình ảnh - có thể là URL hoặc file đã upload
+        let imageUrl = img;
+        // Nếu có file upload, sử dụng URL của file đã upload
+        if (req.file) {
+            imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
         const job = await prisma_1.default.newJob.update({
             where: { id },
             data: {
@@ -190,7 +210,7 @@ const updateNewJob = async (req, res) => {
                 isRemote,
                 tags,
                 status,
-                img,
+                img: imageUrl,
             },
         });
         return res.status(200).json({

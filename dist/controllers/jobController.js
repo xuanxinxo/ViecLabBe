@@ -111,10 +111,18 @@ exports.getJobById = getJobById;
 const createJob = async (req, res) => {
     try {
         const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote = false, tags = [], img, } = req.body;
-        if (!title || !company || !location || !type || !salary || !description) {
+        if (!title || !company || !location || !type || !salary || !description || !deadline) {
             return res.status(400).json({
                 success: false,
-                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc',
+                error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc: title, company, location, type, salary, description, deadline',
+            });
+        }
+        // Validate deadline
+        const deadlineDate = new Date(deadline);
+        if (isNaN(deadlineDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                error: 'Định dạng deadline không hợp lệ'
             });
         }
         // Xử lý hình ảnh - có thể là URL hoặc file đã upload
@@ -136,7 +144,7 @@ const createJob = async (req, res) => {
                 tags: tags || [],
                 isRemote: Boolean(isRemote),
                 status: 'active',
-                deadline: new Date(deadline),
+                deadline: deadlineDate,
                 postedDate: new Date(),
                 img: imageUrl,
             },

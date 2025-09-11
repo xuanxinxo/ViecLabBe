@@ -132,10 +132,19 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
       img,
     } = req.body;
 
-    if (!title || !company || !location || !type || !salary || !description) {
+    if (!title || !company || !location || !type || !salary || !description || !deadline) {
       return res.status(400).json({
         success: false,
-        error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc',
+        error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc: title, company, location, type, salary, description, deadline',
+      });
+    }
+
+    // Validate deadline
+    const deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Định dạng deadline không hợp lệ'
       });
     }
 
@@ -160,7 +169,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
         tags: tags || [],
         isRemote: Boolean(isRemote),
         status: 'active',
-        deadline: new Date(deadline),
+        deadline: deadlineDate,
         postedDate: new Date(),
         img: imageUrl,
       },

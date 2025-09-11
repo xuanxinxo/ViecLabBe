@@ -99,7 +99,7 @@ export const createHiring = async (req: Request, res: Response): Promise<Respons
     if (!title || !company || !location || !type || !salary || !deadline) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: title, company, location, type, salary, deadline' 
+        error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc: title, company, location, type, salary, deadline' 
       });
     }
 
@@ -108,7 +108,7 @@ export const createHiring = async (req: Request, res: Response): Promise<Respons
     if (isNaN(deadlineDate.getTime())) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid deadline format' 
+        error: 'Định dạng deadline không hợp lệ' 
       });
     }
 
