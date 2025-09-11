@@ -6,7 +6,6 @@ import {
   updateJob, 
   deleteJob 
 } from '../controllers/jobController';
-import { auth } from '../middleware/auth';
 import { cacheMiddleware, clearCache } from '../middleware/cache';
 
 const router = Router();
@@ -15,20 +14,20 @@ const router = Router();
 router.get('/', cacheMiddleware(2 * 60 * 1000), getJobs); // Cache for 2 minutes
 router.get('/:id', cacheMiddleware(5 * 60 * 1000), getJobById); // Cache for 5 minutes
 
-// Protected routes (require authentication)
-router.post('/', auth, (req, res, next) => {
+// Public routes (no authentication required)
+router.post('/', (req, res, next) => {
   clearCache('/api/jobs');
   next();
 }, createJob);
-router.put('/:id', auth, (req, res, next) => {
+router.put('/:id', (req, res, next) => {
   clearCache('/api/jobs');
   next();
 }, updateJob);
-router.patch('/:id', auth, (req, res, next) => {
+router.patch('/:id', (req, res, next) => {
   clearCache('/api/jobs');
   next();
 }, updateJob); // Add PATCH support for partial updates
-router.delete('/:id', auth, (req, res, next) => {
+router.delete('/:id', (req, res, next) => {
   clearCache('/api/jobs');
   next();
 }, deleteJob);

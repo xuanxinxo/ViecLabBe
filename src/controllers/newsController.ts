@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Lấy tất cả tin tức với pagination
 export const getAllNews = async (req: Request, res: Response): Promise<Response> => {
@@ -68,15 +66,15 @@ export const createNews = async (req: Request, res: Response): Promise<Response>
   try {
     const { title, summary, image, link, date } = req.body;
 
-    if (!title || !summary || !image || !link) {
-      return res.status(400).json({ error: 'Title, summary, image and link are required' });
+    if (!title || !summary || !link) {
+      return res.status(400).json({ error: 'Title, summary and link are required' });
     }
 
     const news = await prisma.news.create({
       data: {
         title,
         summary,
-        image,
+        image: image || null,
         link,
         date: date || new Date().toISOString(),
         v: 1,
@@ -120,7 +118,7 @@ export const updateNews = async (req: Request, res: Response): Promise<Response>
       data: {
         title,
         summary,
-        image,
+        image: image || null,
         link,
         date,
       },

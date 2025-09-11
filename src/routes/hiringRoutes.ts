@@ -6,7 +6,6 @@ import {
   updateHiring,
   deleteHiring,
 } from '../controllers/hiringController';
-import { auth } from '../middleware/auth';
 
 const router = Router();
 
@@ -14,9 +13,9 @@ const router = Router();
 router.get('/', getHirings);
 router.get('/:id', getHiringById);
 
-// Protected routes (require authentication)
-router.post('/', auth, createHiring);
-router.put('/:id', auth, updateHiring);
-router.delete('/:id', auth, deleteHiring);
+// Public routes (no authentication required)
+router.post('/', createHiring);
+router.put('/:id', updateHiring);
+router.delete('/:id', deleteHiring);
 
 export default router;

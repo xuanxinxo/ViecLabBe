@@ -6,7 +6,6 @@ import {
   updateNews,
   deleteNews,
 } from '../controllers/newsController';
-import { auth } from '../middleware/auth';
 
 const router = Router();
 
@@ -14,9 +13,9 @@ const router = Router();
 router.get('/', getAllNews);
 router.get('/:id', getNewsById);
 
-// Protected routes (require authentication)
-router.post('/', auth, createNews);
-router.put('/:id', auth, updateNews);
-router.delete('/:id', auth, deleteNews);
+// Public routes (no authentication required)
+router.post('/', createNews);
+router.put('/:id', updateNews);
+router.delete('/:id', deleteNews);
 
 export default router;

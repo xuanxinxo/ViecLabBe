@@ -1,9 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteNewJob = exports.updateNewJob = exports.createNewJob = exports.getNewJobById = exports.getAllNewJobs = void 0;
-// import { PrismaClient } from "@prisma/client";
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = __importDefault(require("../lib/prisma"));
 // Lấy tất cả NewJob với pagination
 const getAllNewJobs = async (req, res) => {
     try {
@@ -25,7 +26,7 @@ const getAllNewJobs = async (req, res) => {
             ];
         }
         const [jobs, total] = await Promise.all([
-            prisma.newJob.findMany({
+            prisma_1.default.newJob.findMany({
                 where,
                 orderBy: {
                     createdAt: 'desc',
@@ -51,7 +52,7 @@ const getAllNewJobs = async (req, res) => {
                     img: true
                 }
             }),
-            prisma.newJob.count({ where })
+            prisma_1.default.newJob.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -85,7 +86,7 @@ const getNewJobById = async (req, res) => {
                 error: "Job ID is required"
             });
         }
-        const job = await prisma.newJob.findUnique({
+        const job = await prisma_1.default.newJob.findUnique({
             where: { id },
         });
         if (!job) {
@@ -119,7 +120,7 @@ const createNewJob = async (req, res) => {
                 error: 'Vui lòng cung cấp đầy đủ thông tin bắt buộc'
             });
         }
-        const job = await prisma.newJob.create({
+        const job = await prisma_1.default.newJob.create({
             data: {
                 title,
                 company,
@@ -132,7 +133,7 @@ const createNewJob = async (req, res) => {
                 deadline: new Date(deadline),
                 isRemote: Boolean(isRemote),
                 tags,
-                img: img || '',
+                img: img || null,
                 status,
                 postedDate: new Date(),
                 createdAt: new Date()
@@ -157,7 +158,7 @@ exports.createNewJob = createNewJob;
 const updateNewJob = async (req, res) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const { title, company, location, type, salary, description, requirements, benefits, deadline, isRemote, tags, status, img, } = req.body;
         if (!id) {
             return res.status(400).json({
                 success: false,
@@ -165,7 +166,7 @@ const updateNewJob = async (req, res) => {
             });
         }
         // Check if job exists
-        const existingJob = await prisma.newJob.findUnique({
+        const existingJob = await prisma_1.default.newJob.findUnique({
             where: { id },
         });
         if (!existingJob) {
@@ -174,13 +175,23 @@ const updateNewJob = async (req, res) => {
                 error: "Job không tồn tại"
             });
         }
-        // Handle date fields
-        if (updateData.deadline) {
-            updateData.deadline = new Date(updateData.deadline);
-        }
-        const job = await prisma.newJob.update({
+        const job = await prisma_1.default.newJob.update({
             where: { id },
-            data: updateData,
+            data: {
+                title,
+                company,
+                location,
+                type,
+                salary,
+                description,
+                requirements,
+                benefits,
+                deadline: deadline ? new Date(deadline) : undefined,
+                isRemote,
+                tags,
+                status,
+                img,
+            },
         });
         return res.status(200).json({
             success: true,
@@ -208,7 +219,7 @@ const deleteNewJob = async (req, res) => {
             });
         }
         // Check if job exists
-        const existingJob = await prisma.newJob.findUnique({
+        const existingJob = await prisma_1.default.newJob.findUnique({
             where: { id },
         });
         if (!existingJob) {
@@ -217,7 +228,7 @@ const deleteNewJob = async (req, res) => {
                 error: "Job không tồn tại"
             });
         }
-        await prisma.newJob.delete({
+        await prisma_1.default.newJob.delete({
             where: { id },
         });
         return res.status(200).json({

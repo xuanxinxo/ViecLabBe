@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Lấy tất cả tin tuyển dụng với pagination
 export const getHirings = async (req: Request, res: Response): Promise<Response> => {
@@ -126,7 +124,7 @@ export const createHiring = async (req: Request, res: Response): Promise<Respons
         benefits: benefits || [],
         deadline: deadlineDate,
         postedDate: postedDate ? new Date(postedDate) : new Date(),
-        img: img || '',
+        img: img || null,
       },
     });
 

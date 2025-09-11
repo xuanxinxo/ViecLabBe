@@ -1,8 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteHiring = exports.updateHiring = exports.getHiringById = exports.createHiring = exports.getHirings = void 0;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = __importDefault(require("../lib/prisma"));
 // Lấy tất cả tin tuyển dụng với pagination
 const getHirings = async (req, res) => {
     try {
@@ -24,7 +26,7 @@ const getHirings = async (req, res) => {
             ];
         }
         const [hirings, total] = await Promise.all([
-            prisma.hiring.findMany({
+            prisma_1.default.hiring.findMany({
                 where,
                 orderBy: {
                     postedDate: 'desc'
@@ -46,7 +48,7 @@ const getHirings = async (req, res) => {
                     img: true
                 }
             }),
-            prisma.hiring.count({ where })
+            prisma_1.default.hiring.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -90,7 +92,7 @@ const createHiring = async (req, res) => {
                 message: 'Invalid deadline format'
             });
         }
-        const hiring = await prisma.hiring.create({
+        const hiring = await prisma_1.default.hiring.create({
             data: {
                 title,
                 company,
@@ -102,7 +104,7 @@ const createHiring = async (req, res) => {
                 benefits: benefits || [],
                 deadline: deadlineDate,
                 postedDate: postedDate ? new Date(postedDate) : new Date(),
-                img: img || '',
+                img: img || null,
             },
         });
         return res.status(201).json({ success: true, data: hiring });
@@ -127,7 +129,7 @@ const getHiringById = async (req, res) => {
                 message: 'Hiring ID is required'
             });
         }
-        const hiring = await prisma.hiring.findUnique({
+        const hiring = await prisma_1.default.hiring.findUnique({
             where: { id },
         });
         if (!hiring) {
@@ -160,7 +162,7 @@ const updateHiring = async (req, res) => {
             });
         }
         // Check if hiring exists
-        const existingHiring = await prisma.hiring.findUnique({
+        const existingHiring = await prisma_1.default.hiring.findUnique({
             where: { id },
         });
         if (!existingHiring) {
@@ -169,7 +171,7 @@ const updateHiring = async (req, res) => {
                 message: 'Hiring not found'
             });
         }
-        const updatedHiring = await prisma.hiring.update({
+        const updatedHiring = await prisma_1.default.hiring.update({
             where: { id },
             data: {
                 title,
@@ -207,7 +209,7 @@ const deleteHiring = async (req, res) => {
             });
         }
         // Check if hiring exists
-        const existingHiring = await prisma.hiring.findUnique({
+        const existingHiring = await prisma_1.default.hiring.findUnique({
             where: { id },
         });
         if (!existingHiring) {
@@ -216,7 +218,7 @@ const deleteHiring = async (req, res) => {
                 message: 'Hiring not found'
             });
         }
-        await prisma.hiring.delete({
+        await prisma_1.default.hiring.delete({
             where: { id },
         });
         return res.status(200).json({

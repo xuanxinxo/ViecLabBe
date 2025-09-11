@@ -1,8 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteNews = exports.updateNews = exports.getNewsById = exports.createNews = exports.getAllNews = void 0;
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_1 = __importDefault(require("../lib/prisma"));
 // Lấy tất cả tin tức với pagination
 const getAllNews = async (req, res) => {
     try {
@@ -19,7 +21,7 @@ const getAllNews = async (req, res) => {
             ];
         }
         const [news, total] = await Promise.all([
-            prisma.news.findMany({
+            prisma_1.default.news.findMany({
                 where,
                 orderBy: {
                     date: 'desc'
@@ -35,7 +37,7 @@ const getAllNews = async (req, res) => {
                     date: true
                 }
             }),
-            prisma.news.count({ where })
+            prisma_1.default.news.count({ where })
         ]);
         return res.status(200).json({
             success: true,
@@ -63,14 +65,14 @@ exports.getAllNews = getAllNews;
 const createNews = async (req, res) => {
     try {
         const { title, summary, image, link, date } = req.body;
-        if (!title || !summary || !image || !link) {
-            return res.status(400).json({ error: 'Title, summary, image and link are required' });
+        if (!title || !summary || !link) {
+            return res.status(400).json({ error: 'Title, summary and link are required' });
         }
-        const news = await prisma.news.create({
+        const news = await prisma_1.default.news.create({
             data: {
                 title,
                 summary,
-                image,
+                image: image || null,
                 link,
                 date: date || new Date().toISOString(),
                 v: 1,
@@ -88,7 +90,7 @@ exports.createNews = createNews;
 const getNewsById = async (req, res) => {
     try {
         const { id } = req.params;
-        const newsItem = await prisma.news.findUnique({
+        const newsItem = await prisma_1.default.news.findUnique({
             where: { id },
         });
         if (!newsItem) {
@@ -107,12 +109,12 @@ const updateNews = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, summary, image, link, date } = req.body;
-        const updatedNews = await prisma.news.update({
+        const updatedNews = await prisma_1.default.news.update({
             where: { id },
             data: {
                 title,
                 summary,
-                image,
+                image: image || null,
                 link,
                 date,
             },
@@ -129,7 +131,7 @@ exports.updateNews = updateNews;
 const deleteNews = async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.news.delete({
+        await prisma_1.default.news.delete({
             where: { id },
         });
         return res.status(200).json({ message: 'News deleted successfully' });

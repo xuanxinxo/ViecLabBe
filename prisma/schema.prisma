@@ -115,7 +115,7 @@ model news {
   id      String @id @default(auto()) @map("_id") @db.ObjectId
   v       Int    @map("__v")
   date    String
-  image   String
+  image   String?
   link    String
   summary String
   title   String

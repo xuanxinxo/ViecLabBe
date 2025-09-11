@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
-// import { PrismaClient } from "@prisma/client";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma';
 
 // Lấy tất cả NewJob với pagination
 export const getAllNewJobs = async (req: Request, res: Response) => {
@@ -159,7 +156,7 @@ export const createNewJob = async (req: Request, res: Response) => {
         deadline: new Date(deadline),
         isRemote: Boolean(isRemote),
         tags,
-        img: img || '',
+        img: img || null,
         status,
         postedDate: new Date(),
         createdAt: new Date()
@@ -184,7 +181,21 @@ export const createNewJob = async (req: Request, res: Response) => {
 export const updateNewJob = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const {
+      title,
+      company,
+      location,
+      type,
+      salary,
+      description,
+      requirements,
+      benefits,
+      deadline,
+      isRemote,
+      tags,
+      status,
+      img,
+    } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -205,14 +216,23 @@ export const updateNewJob = async (req: Request, res: Response) => {
       });
     }
 
-    // Handle date fields
-    if (updateData.deadline) {
-      updateData.deadline = new Date(updateData.deadline);
-    }
-
     const job = await prisma.newJob.update({
       where: { id },
-      data: updateData,
+      data: {
+        title,
+        company,
+        location,
+        type,
+        salary,
+        description,
+        requirements,
+        benefits,
+        deadline: deadline ? new Date(deadline) : undefined,
+        isRemote,
+        tags,
+        status,
+        img,
+      },
     });
 
     return res.status(200).json({

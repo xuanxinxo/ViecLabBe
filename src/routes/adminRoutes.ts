@@ -54,3 +54,4 @@ router.delete('/newjobs/:id', adminAuth, deleteNewJob);
 
 export default router;
 
+
