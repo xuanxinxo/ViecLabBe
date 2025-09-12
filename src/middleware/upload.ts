@@ -34,7 +34,7 @@ const upload = multer({
 });
 
 // Middleware upload single file
-export const uploadSingle = upload.single('image');
+export const uploadSingle = upload.single('img');
 
 // Middleware upload multiple files
 export const uploadMultiple = upload.array('images', 5);

@@ -4,27 +4,27 @@ import prisma from '../lib/prisma';
 // Lấy tất cả jobs với pagination
 export const getJobs = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { 
-      status, 
-      type, 
-      location, 
-      isRemote, 
-      page = '1', 
+    const {
+      status,
+      type,
+      location,
+      isRemote,
+      page = '1',
       limit,
-      search 
+      search
     } = req.query;
-    
+    console.log("get jobs", req.query);
     const pageNum = parseInt(page as string, 10);
     const limitNum = limit ? parseInt(limit as string, 10) : undefined; // Không giới hạn nếu không có limit
     const skip = limitNum ? (pageNum - 1) * limitNum : 0;
-    
+
     const where: any = {};
-    
+
     if (status) where.status = status;
     if (type) where.type = type;
     if (location) where.location = { contains: location as string, mode: 'insensitive' };
     if (isRemote !== undefined) where.isRemote = isRemote === 'true';
-    
+
     // Add search functionality
     if (search) {
       where.OR = [
@@ -33,7 +33,7 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
         { description: { contains: search as string, mode: 'insensitive' } }
       ];
     }
-    
+
     // Use Promise.all for parallel queries
     const [jobs, total] = await Promise.all([
       prisma.job.findMany({
@@ -63,7 +63,7 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
       }),
       prisma.job.count({ where })
     ]);
-    
+
     return res.status(200).json({
       success: true,
       data: {
@@ -78,9 +78,9 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
     });
   } catch (error) {
     console.error('Error getting jobs:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      error: 'Lỗi server khi lấy danh sách công việc' 
+      error: 'Lỗi server khi lấy danh sách công việc'
     });
   }
 };
@@ -89,7 +89,7 @@ export const getJobs = async (req: Request, res: Response): Promise<Response> =>
 export const getJobById = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
-    
+
     const job = await prisma.job.findUnique({
       where: { id },
     });
@@ -131,7 +131,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
       tags = [],
       img,
     } = req.body;
-
+    console.log("create", req.body);
     if (!title || !company || !location || !type || !salary || !description || !deadline) {
       return res.status(400).json({
         success: false,
@@ -150,7 +150,7 @@ export const createJob = async (req: Request, res: Response): Promise<Response> 
 
     // Xử lý hình ảnh - có thể là URL hoặc file đã upload
     let imageUrl = img || null;
-    
+
     // Nếu có file upload, sử dụng URL của file đã upload
     if (req.file) {
       imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
@@ -234,7 +234,7 @@ export const updateJob = async (req: Request, res: Response): Promise<Response> 
 
     // Xử lý hình ảnh - có thể là URL hoặc file đã upload
     let imageUrl = img;
-    
+
     // Nếu có file upload, sử dụng URL của file đã upload
     if (req.file) {
       imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;

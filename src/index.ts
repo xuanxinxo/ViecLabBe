@@ -10,7 +10,7 @@ const app = express();
 const prisma = new PrismaClient();
 
 // CORS configuration
-const corsOrigins = process.env.CORS_ORIGINS 
+const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
   : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'];
 
@@ -33,17 +33,17 @@ app.get("/health", async (_req, res) => {
     // Test database connection
     await prisma.$connect();
     await prisma.$disconnect();
-    
-    res.status(200).json({ 
-      status: "OK", 
+
+    res.status(200).json({
+      status: "OK",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: "Connected"
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    res.status(503).json({ 
-      status: "ERROR", 
+    res.status(503).json({
+      status: "ERROR",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: "Disconnected",
@@ -79,7 +79,6 @@ import { auth } from "./middleware/auth";
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
-
 // Protected routes
 app.use("/api/jobs", jobRoutes);
 app.use("/api/newjobs", newJobRoutes);
@@ -88,11 +87,13 @@ app.use("/api/hirings", hiringRoutes);
 app.use("/api/news", newsRoutes);
 
 // Xử lý lỗi toàn cục
-app.use(
-  (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Đã xảy ra lỗi máy chủ" });
-  }
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[GLOBAL ERROR HANDLER]', err);
+  res.status(500).json({
+    success: false,
+    error: "Đã xảy ra lỗi máy chủ"
+  });
+}
 );
 
 const PORT = process.env.PORT || 5000;
@@ -103,7 +104,7 @@ async function startServer() {
     console.log('🔌 Testing database connection...');
     await prisma.$connect();
     console.log('✅ Database connected successfully');
-    
+
     const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌐 Health check: http://localhost:${PORT}/health`);
