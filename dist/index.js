@@ -14,7 +14,16 @@ const prisma = new client_1.PrismaClient();
 // CORS configuration
 const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'];
+    : 
+    : [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003',
+  'https://www.vieclab.com'
+];
+
+    ;
 app.use((0, cors_1.default)({
     origin: corsOrigins,
     credentials: true,
